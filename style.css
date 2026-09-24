@@ -1,0 +1,53 @@
+#st-financial-status-bar.st-fsb {
+  position: fixed; z-index: 9999; top: 86px; right: 16px; width: 316px; max-height: calc(100vh - 105px);
+  overflow: auto; color: #e9edf4; background: linear-gradient(145deg, #17202c 0%, #10151d 100%);
+  border: 1px solid #3d526a; border-radius: 14px; box-shadow: 0 14px 35px #0008; font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+#st-financial-status-bar * { box-sizing: border-box; }
+#st-financial-status-bar button { color: inherit; background: #253548; border: 1px solid #47627d; border-radius: 7px; cursor: pointer; padding: 6px 9px; }
+#st-financial-status-bar button:hover { background: #31506d; }
+.st-fsb-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 15px 7px; }
+.st-fsb-head h3 { margin: 0; font-size: 17px; letter-spacing: .03em; }
+.st-fsb-head button { padding: 1px 8px; font-size: 18px; }
+.st-fsb-kicker { color: #78b9ff; font-size: 9px; letter-spacing: .2em; }
+.st-fsb-location { margin: 0 15px 11px; color: #d8e6f6; font-weight: 600; }
+.st-fsb-location span { float: right; color: #91a5bb; font-size: 11px; font-weight: 400; }
+.st-fsb-total { margin: 0 12px 10px; padding: 12px; background: #1e3043; border-radius: 10px; }
+.st-fsb-total span, .st-fsb-funds span { color: #9eb2c5; font-size: 11px; }
+.st-fsb-total b { display: block; margin-top: 2px; color: #8bd5ac; font-size: 23px; }
+.st-fsb-funds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0 12px 11px; }
+.st-fsb-funds > div { padding: 8px; background: #182431; border-radius: 8px; }
+.st-fsb-funds b { display: block; overflow: hidden; margin-top: 2px; color: #f2f5fa; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.st-fsb-details { margin: 0 12px 9px; border-top: 1px solid #2c3b4c; }
+.st-fsb-details summary { padding: 8px 1px; color: #c9d7e5; cursor: pointer; font-weight: 600; list-style: none; }
+.st-fsb-details summary::-webkit-details-marker { display: none; }
+.st-fsb-details summary span { float: right; color: #7891a8; font-size: 11px; font-weight: 400; }
+.st-fsb-asset, .st-fsb-product { display: grid; grid-template-columns: 1fr auto; gap: 5px; padding: 6px 3px; border-bottom: 1px solid #263341; }
+.st-fsb-asset small, .st-fsb-product small { display: block; grid-column: 1 / 3; color: #8297ab; font-size: 10px; }
+.st-fsb-product strong { color: #f3c875; }
+.st-fsb-product i { color: #8396aa; font-size: 10px; font-style: normal; }
+.st-fsb-shop { margin: 0 0 8px; padding: 7px 8px; background: #17232f; border-radius: 8px; }
+.st-fsb-shop-title { display: flex; justify-content: space-between; padding-bottom: 3px; color: #acd2f6; }
+.st-fsb-shop-title span { color: #7891a8; font-size: 10px; }
+.st-fsb-empty { padding: 8px 2px; color: #7f93a6; font-size: 11px; }
+.st-fsb-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; padding: 6px 12px 10px; }
+.st-fsb-actions button { font-size: 11px; }
+.st-fsb-foot { padding: 0 14px 11px; color: #71859a; font-size: 10px; }
+.st-fsb-dot { display: inline-block; width: 6px; height: 6px; margin-right: 4px; border-radius: 50%; background: #e2b75d; }
+.st-fsb-dot.api { background: #75d59d; }
+.st-fsb-mini { width: 158px !important; overflow: hidden !important; }
+.st-fsb-mini > *:not(.st-fsb-head) { display: none; }
+.st-fsb-modal-wrap { position: fixed; z-index: 10000; inset: 0; display: grid; place-items: center; padding: 18px; background: #0009; }
+.st-fsb-modal { width: min(680px, 96vw); max-height: 90vh; overflow: auto; color: #e9edf4; background: #17202c; border: 1px solid #4b6681; border-radius: 12px; box-shadow: 0 20px 60px #000b; }
+.st-fsb-modal-head { display: flex; justify-content: space-between; align-items: center; padding: 13px 15px; border-bottom: 1px solid #2f4153; }
+.st-fsb-modal-head button { padding: 0 8px; font-size: 20px; }
+.st-fsb-modal-body { padding: 15px; }
+.st-fsb-modal-body label { display: block; margin: 0 0 10px; color: #a9bed2; font-size: 12px; }
+.st-fsb-modal-body input, .st-fsb-json { display: block; width: 100%; margin-top: 4px; padding: 8px; color: #edf3fa; background: #0f1720; border: 1px solid #40566d; border-radius: 6px; }
+.st-fsb-json { min-height: 360px; resize: vertical; font: 12px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.st-fsb-help { color: #8fa4b8; font-size: 12px; }
+.st-fsb-api-status { min-height: 20px; margin: 8px 0; color: #8bd5ac; font-size: 12px; }
+.st-fsb-modal-actions { display: flex; flex-wrap: wrap; gap: 7px; justify-content: flex-end; margin-top: 13px; }
+.st-fsb-toast { position: fixed; z-index: 10001; right: 20px; bottom: 20px; max-width: 390px; padding: 10px 13px; color: #e9fff1; background: #1b6345; border: 1px solid #5bd795; border-radius: 8px; box-shadow: 0 5px 20px #0007; font-size: 12px; }
+.st-fsb-toast.error { color: #fff0f0; background: #732f35; border-color: #f1848b; }
+@media (max-width: 700px) { #st-financial-status-bar.st-fsb { top: auto; right: 8px; bottom: 8px; width: min(316px, calc(100vw - 16px)); max-height: 75vh; } }

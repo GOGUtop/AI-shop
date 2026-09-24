@@ -1,0 +1,9 @@
+{
+  "display_name": "通用资金与行情状态栏",
+  "author": "Codex",
+  "version": "1.0.0",
+  "homePage": "https://github.com/SillyTavern/SillyTavern",
+  "loading_order": 100,
+  "js": ["index.js"],
+  "css": ["style.css"]
+}

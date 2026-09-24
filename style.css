@@ -43,7 +43,7 @@
 .st-fsb-modal-head button { padding: 0 8px; font-size: 20px; }
 .st-fsb-modal-body { padding: 15px; }
 .st-fsb-modal-body label { display: block; margin: 0 0 10px; color: #a9bed2; font-size: 12px; }
-.st-fsb-modal-body input, .st-fsb-json { display: block; width: 100%; margin-top: 4px; padding: 8px; color: #edf3fa; background: #0f1720; border: 1px solid #40566d; border-radius: 6px; }
+.st-fsb-modal-body input, .st-fsb-modal-body select, .st-fsb-json { display: block; width: 100%; margin-top: 4px; padding: 8px; color: #edf3fa; background: #0f1720; border: 1px solid #40566d; border-radius: 6px; }
 .st-fsb-json { min-height: 360px; resize: vertical; font: 12px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
 .st-fsb-help { color: #8fa4b8; font-size: 12px; }
 .st-fsb-api-status { min-height: 20px; margin: 8px 0; color: #8bd5ac; font-size: 12px; }

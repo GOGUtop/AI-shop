@@ -32,7 +32,7 @@
 
 “从正文识别”优先读取最近消息中的 ` ```json ` 状态块，随后才使用“现金/存款/当前位置”等明确句式。未出现的字段保留旧值，避免一次不完整的正文覆盖整张账本。可以在正文中让作者或角色输出上面的 JSON；对于古代、现代、科幻或不同国家，只需更换 `currency`、`location` 和商品内容即可。
 
-“API 设置”支持 OpenAI-compatible Chat Completions 地址，例如 `https://api.openai.com/v1`、本地 Ollama 的 `/v1` 或完整的 `/v1/chat/completions`。可以单独保存 API Key、模型和读取消息数；“测试连接”只发送最小请求，“API 拉取”才会发送最近正文，并要求模型只返回严格 JSON。API 返回会与已有账本合并，且提示模型不得猜测正文没有明确给出的数字。
+“API 设置”支持 OpenAI-compatible 地址，例如 `https://api.openai.com/v1`、本地 Ollama 的 `/v1` 或完整的 `/v1/chat/completions`。点击“拉取模型”会请求同一 API 根地址下的 `/models`，将服务端返回的模型列表放入模型下拉框；“测试连接”优先测试模型列表接口，接口不提供 `/models` 时再使用最小聊天请求。“模型解析正文”才会把最近正文发送给选定模型，并要求模型只返回严格 JSON。API 返回会与已有账本合并，且提示模型不得猜测正文没有明确给出的数字。
 
 API Key 仅保存在浏览器本机 `localStorage`。如果服务端不允许浏览器跨域请求，需要在服务端开启 CORS，或填写 SillyTavern 可访问的同源代理地址。
 

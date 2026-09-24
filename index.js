@@ -8,6 +8,7 @@
         endpoint: '/v1/chat/completions',
         apiKey: '',
         model: '',
+        models: [],
         temperature: 0,
         autoExtract: false,
         recentMessages: 12,
@@ -144,7 +145,7 @@
             <div class="st-fsb-funds"><div><span>现金</span><b>${formatMoney(state.funds.cash)}</b></div><div><span>存款</span><b>${formatMoney(state.funds.deposit)}</b></div><div><span>不动产/资产</span><b>${formatMoney(assetsTotal)}</b></div></div>
             <details class="st-fsb-details" open><summary>资产明细 <span>${state.funds.assets.length}</span></summary>${state.funds.assets.map((a) => `<div class="st-fsb-asset"><span>${escapeHtml(a.name)}<small>${escapeHtml(a.note)}</small></span><b>${formatMoney(a.value)}</b></div>`).join('') || '<div class="st-fsb-empty">暂无资产</div>'}</details>
             <details class="st-fsb-details" open><summary>周围行情 <span>${state.market.shops.length} 店</span></summary>${shops}</details>
-            <div class="st-fsb-actions"><button data-action="extract">从正文识别</button><button data-action="pull">API 拉取</button><button data-action="edit">编辑状态</button><button data-action="settings">API 设置</button></div>
+            <div class="st-fsb-actions"><button data-action="extract">从正文识别</button><button data-action="models">拉取模型</button><button data-action="pull">模型解析正文</button><button data-action="edit">编辑状态</button><button data-action="settings">API 设置</button></div>
             <div class="st-fsb-foot"><span class="st-fsb-dot ${state.meta.confidence === 'api' ? 'api' : ''}"></span>${escapeHtml(state.meta.confidence === 'api' ? 'API 已校正' : state.meta.source || '手动状态')} · ${escapeHtml(state.meta.updatedAt || '未更新')}</div>`;
         host.querySelector('[data-action="minimize"]').addEventListener('click', () => host.classList.toggle('st-fsb-mini'));
         host.querySelectorAll('[data-action]').forEach((button) => {
@@ -160,7 +161,8 @@
             if (!extracted) return notify('没有找到可确认的资金或行情字段。建议在正文加入 ```json 状态块。', true);
             state = mergeState(state, Object.assign(extracted, { meta: { confidence: 'text', source: '正文识别', updatedAt: now() } }));
             saveState(); render(); notify('已从正文识别明确字段；未出现的字段保持原值。');
-        } else if (action === 'pull') pullFromApi();
+        } else if (action === 'models') pullModels();
+        else if (action === 'pull') pullFromApi();
         else if (action === 'edit') openEditor();
         else if (action === 'settings') openSettings();
     }
@@ -237,10 +239,37 @@
         return endpoint;
     }
 
+    function modelsUrl() {
+        const endpoint = apiUrl();
+        return endpoint.replace(/\/chat\/completions$/i, '/models');
+    }
+
     function authHeaders() {
         const headers = { 'Content-Type': 'application/json' };
         if (settings.apiKey) headers.Authorization = 'Bearer ' + settings.apiKey;
         return headers;
+    }
+
+    async function fetchModels() {
+        const response = await fetch(modelsUrl(), { method: 'GET', headers: authHeaders() });
+        const raw = await response.text();
+        if (!response.ok) throw new Error(`HTTP ${response.status}: ${raw.slice(0, 240)}`);
+        let data;
+        try { data = JSON.parse(raw); } catch (_) { throw new Error('模型接口返回的不是 JSON'); }
+        const list = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : (Array.isArray(data?.models) ? data.models : []));
+        return list.map((item) => typeof item === 'string' ? item : (item?.id || item?.name || item?.model || '')).filter(Boolean);
+    }
+
+    async function pullModels() {
+        notify('正在拉取模型列表…');
+        try {
+            const models = await fetchModels();
+            settings.models = [...new Set(models)];
+            if (!settings.model && settings.models[0]) settings.model = settings.models[0];
+            localStorage.setItem(SETTINGS_STORAGE, JSON.stringify(settings));
+            notify(settings.models.length ? `已拉取 ${settings.models.length} 个模型。` : '接口可访问，但没有返回模型。');
+            if (modal) openSettings();
+        } catch (error) { notify('模型拉取失败：' + error.message, true); }
     }
 
     async function callApi(messages, maxTokens) {
@@ -263,18 +292,26 @@
             const content = await callApi([{ role: 'system', content: system }, { role: 'user', content: text }]);
             const parsed = parseJsonCandidate(content) || extractFromText(content);
             if (!parsed) throw new Error('API 未返回可识别的状态对象');
-            state = mergeState(state, Object.assign(parsed, { meta: { confidence: 'api', source: 'API 拉取', updatedAt: now() } }));
-            saveState(); render(); notify('API 拉取完成，已合并明确字段。');
-        } catch (error) { notify('API 拉取失败：' + error.message, true); }
+            state = mergeState(state, Object.assign(parsed, { meta: { confidence: 'api', source: '模型解析正文', updatedAt: now() } }));
+            saveState(); render(); notify('模型解析完成，已合并明确字段。');
+        } catch (error) { notify('模型解析失败：' + error.message, true); }
     }
 
     async function testApi() {
         const status = modal?.querySelector('.st-fsb-api-status');
         if (status) status.textContent = '测试中…';
         try {
-            const content = await callApi([{ role: 'user', content: '仅回复 OK' }], 8);
-            if (status) status.textContent = '连接成功：' + String(content).slice(0, 40);
-        } catch (error) { if (status) status.textContent = '连接失败：' + error.message; }
+            const models = await fetchModels();
+            settings.models = [...new Set(models)];
+            if (!settings.model && settings.models[0]) settings.model = settings.models[0];
+            localStorage.setItem(SETTINGS_STORAGE, JSON.stringify(settings));
+            if (status) status.textContent = `连接成功，模型数：${models.length}`;
+        } catch (error) {
+            try {
+                const content = await callApi([{ role: 'user', content: '仅回复 OK' }], 8);
+                if (status) status.textContent = '连接成功：' + String(content).slice(0, 40);
+            } catch (fallbackError) { if (status) status.textContent = '连接失败：' + fallbackError.message; }
+        }
     }
 
     function openEditor() {
@@ -286,9 +323,11 @@
     }
 
     function openSettings() {
-        openModal('独立 API 连接', `<label>API 地址<input data-setting="endpoint" value="${escapeHtml(settings.endpoint)}" placeholder="https://example.com/v1/chat/completions"></label><label>API Key<input data-setting="apiKey" type="password" value="${escapeHtml(settings.apiKey)}" placeholder="可留空"></label><label>模型<input data-setting="model" value="${escapeHtml(settings.model)}" placeholder="例如 gpt-4o-mini"></label><label>温度<input data-setting="temperature" type="number" min="0" max="2" step="0.1" value="${Number(settings.temperature) || 0}"></label><label>读取最近消息数<input data-setting="recentMessages" type="number" min="1" max="50" value="${Number(settings.recentMessages) || 12}"></label><p class="st-fsb-help">“测试连接”会发送一条最小请求；“API 拉取”才会把最近正文发送给模型。API Key 仅保存在本机浏览器 localStorage。</p><div class="st-fsb-api-status"></div><div class="st-fsb-modal-actions"><button data-modal="save-settings">保存设置</button><button data-modal="test-api">测试连接</button><button data-modal="close">关闭</button></div>`);
+        const modelOptions = [...new Set([...(settings.models || []), settings.model].filter(Boolean))].map((model) => `<option value="${escapeHtml(model)}"${model === settings.model ? ' selected' : ''}>${escapeHtml(model)}</option>`).join('');
+        openModal('独立 API 连接', `<label>API 地址<input data-setting="endpoint" value="${escapeHtml(settings.endpoint)}" placeholder="https://example.com/v1 或完整 chat/completions 地址"></label><label>API Key<input data-setting="apiKey" type="password" value="${escapeHtml(settings.apiKey)}" placeholder="可留空"></label><label>模型<select data-setting="model"><option value="">未选择</option>${modelOptions}</select></label><p class="st-fsb-help">模型列表来自“拉取模型”，请求地址会自动使用同一 API 根地址的 <code>/models</code>。拉取模型只读取模型清单，不会发送聊天正文。</p><label>温度<input data-setting="temperature" type="number" min="0" max="2" step="0.1" value="${Number(settings.temperature) || 0}"></label><label>读取最近消息数<input data-setting="recentMessages" type="number" min="1" max="50" value="${Number(settings.recentMessages) || 12}"></label><div class="st-fsb-api-status"></div><div class="st-fsb-modal-actions"><button data-modal="save-settings">保存设置</button><button data-modal="pull-models">拉取模型</button><button data-modal="test-api">测试连接</button><button data-modal="close">关闭</button></div>`);
         modal.querySelector('[data-modal="save-settings"]').addEventListener('click', () => { saveSettingsFromModal(); notify('API 设置已保存。'); });
         modal.querySelector('[data-modal="test-api"]').addEventListener('click', async () => { saveSettingsFromModal(); await testApi(); });
+        modal.querySelector('[data-modal="pull-models"]').addEventListener('click', async () => { saveSettingsFromModal(); await pullModels(); });
     }
 
     function saveSettingsFromModal() {
